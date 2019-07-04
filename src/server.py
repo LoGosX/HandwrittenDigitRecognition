@@ -1,5 +1,7 @@
 from flask import Flask, jsonify, request, render_template
 
+from train import Model
+
 app = Flask(__name__)
 
 @app.route('/hello', methods=['POST', 'GET'])
@@ -20,20 +22,24 @@ def test_page():
     return render_template('index.html') #from 'templates' directory
 
 
+model = Model()
+
 @app.route('/predict', methods=['GET', 'POST'])
 def predictions():
-
+    global prediction, probabilities
     if request.method == 'GET':
         print('Making predictions...')
         predictions = {
-            'probabilities': [0.0, 0.1, 0.05, 0.3, 0.05, 0.0, 0.0, 0.0, 0.0, 0.5],
-            'prediction': 9
+            'probabilities': probabilities.tolist(),
+            'prediction': int(prediction)
             }
         return jsonify(predictions)
     else:
         print('Incoming bitmap...')
         bitmap = request.get_json()['bitmap']
-        print('bitmap len', len(bitmap))
-        print(bitmap)
+        # print('bitmap len', len(bitmap))
+        # print(bitmap)
+
+        prediction, probabilities = model.predict([bitmap])
 
         return 'OK', 200

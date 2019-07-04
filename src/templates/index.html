@@ -13,9 +13,14 @@
     var pixelsPerDim = 28; //28 x 28 pixels on canvas
     var resolution; 
     var bitmap = [];
+    var pixelEmpty = 0;
+    var pixelFull = 255;
 
-    while(bitmap.length < pixelsPerDim * pixelsPerDim) {
-        bitmap.push(0);
+    while(bitmap.length < pixelsPerDim) {
+        b = [];
+        while(b.length < pixelsPerDim)
+            b.push(pixelEmpty);
+        bitmap.push(b);
     }
 
     function w() {
@@ -89,12 +94,13 @@
     function draw() {
         rects = findRects(prevX, prevY, currX, currY);
         for(var i = 0; i < rects.length; i++) {
-            bitmap[rects[i][0] * pixelsPerDim + rects[i][1]] = 255;
+            // console.log(rects[i]);
+            bitmap[rects[i][0]][rects[i][1]] = pixelFull;
         }
 
         for(var i = 0; i < pixelsPerDim; i++) {
             for(var j = 0; j < pixelsPerDim; j++) {
-                if(bitmap[i * pixelsPerDim + j] != 0) {
+                if(bitmap[i][j] != pixelEmpty) {
                     ctx.fillStyle = x;
                 }else {
                     ctx.fillStyle = "white";
@@ -108,7 +114,9 @@
         //var m = confirm("Want to clear");
         //if (m) {
             // ctx.clearRect(0, 0, w, h);
-            bitmap.fill(0);
+            for(var i = 0; i < bitmap.length; i++) {
+                bitmap[i].fill(pixelEmpty);
+            }
             ctx.fillStyle = "white";
             ctx.fillRect(0, 0, w(), h());
         //}
@@ -163,7 +171,7 @@
                 */
                 ctx.fillStyle = x;
                 rect = findRectAt(currX, currY);
-                bitmap[rect[0] * pixelsPerDim + rect[1]] = 255;
+                bitmap[rect[0]][rect[1]] = pixelFull;
                 ctx.fillRect(rect[0] * resolution, rect[1] * resolution, resolution, resolution);
             }
         }
@@ -188,6 +196,21 @@
 
     function postData() {
       // console.log(ctx.getImageData(0, 0, w, h));
+
+        bitmapRotated = [];
+        while(bitmapRotated.length < bitmap.length) {
+            bitmapRotated.push([]);
+            while(bitmapRotated[bitmapRotated.length - 1].length < bitmap.length) {
+                bitmapRotated[bitmapRotated.length - 1].push(0);
+            }
+        }
+
+        for(var i = 0; i < bitmap.length; i++) {
+                for(var j = 0; j < bitmap[i].length; j++) {
+                    bitmapRotated[j][i] = bitmap[i][j];
+                }
+            }
+
       fetch('/predict', {
           method: 'POST',
           headers: {
@@ -195,7 +218,7 @@
           },
         
           body: JSON.stringify({
-            'bitmap': bitmap
+            'bitmap': bitmapRotated
           })
         })
         .then(function (response) {
