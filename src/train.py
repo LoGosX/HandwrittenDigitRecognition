@@ -18,10 +18,9 @@ def get_batch(X, y, batch_index, batch_size):
 
 FINAL_MODEL_PATH = './models/my_finished_model.ckpt'
 
-if __name__ == "__main__":
-    train()
 
 def move_center_mass(X):
+    # transorfms image so that it's center of mass is in the middle
     X = np.copy(X)
     for i in range(X.shape[0]):
         center = ndimage.measurements.center_of_mass(X[i])
@@ -30,6 +29,7 @@ def move_center_mass(X):
         offset_r = int(np.round(center[0] - center_r))
         offset_c = int(np.round(center[1] - center_c))
         X_new = np.zeros(X[i, :, :].shape)
+        #TODO: vectorize loops below
         for r in range(X.shape[1]):
             for c in range(X.shape[2]):
                 if 0 <= r + offset_r < X.shape[1] and 0 <= c + offset_c < X.shape[2]:

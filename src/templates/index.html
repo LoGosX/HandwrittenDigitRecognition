@@ -12,15 +12,15 @@
 
     var pixelsPerDim = 28; //28 x 28 pixels on canvas
     var resolution; 
-    var bitmap = [];
-    var pixelEmpty = 0;
-    var pixelFull = 255;
+    var opacity = []
+    var opacityFull = 1;
+    var opacityNone = 0;
 
-    while(bitmap.length < pixelsPerDim) {
+    while(opacity.length < pixelsPerDim) {
         b = [];
         while(b.length < pixelsPerDim)
-            b.push(pixelEmpty);
-        bitmap.push(b);
+            b.push(opacityNone);
+        opacity.push(b);
     }
 
     function w() {
@@ -50,6 +50,7 @@
         }, false);
     }
     
+    /*
     function color(obj) {
         switch (obj.id) {
             case "green":
@@ -78,7 +79,7 @@
         else y = 2;
     
     }
-    
+    */
 
     /*
     function draw() {
@@ -91,20 +92,18 @@
         ctx.closePath();
     }
     */
+    
     function draw() {
+        ctx.fillStyle = x;
         rects = findRects(prevX, prevY, currX, currY);
         for(var i = 0; i < rects.length; i++) {
             // console.log(rects[i]);
-            bitmap[rects[i][0]][rects[i][1]] = pixelFull;
+            make_dot(rects[i][0], rects[i][1]);
         }
 
         for(var i = 0; i < pixelsPerDim; i++) {
             for(var j = 0; j < pixelsPerDim; j++) {
-                if(bitmap[i][j] != pixelEmpty) {
-                    ctx.fillStyle = x;
-                }else {
-                    ctx.fillStyle = "white";
-                }
+                ctx.fillStyle = getFillStyle(i, j);
                 ctx.fillRect(i * resolution, j * resolution, resolution, resolution);
             }
         }
@@ -114,9 +113,10 @@
         //var m = confirm("Want to clear");
         //if (m) {
             // ctx.clearRect(0, 0, w, h);
-            for(var i = 0; i < bitmap.length; i++) {
-                bitmap[i].fill(pixelEmpty);
+            for(var i = 0; i < opacity.length; i++) {
+                opacity[i].fill(opacityNone);
             }
+            
             ctx.fillStyle = "white";
             ctx.fillRect(0, 0, w(), h());
         //}
@@ -152,6 +152,57 @@
         return rects;
     }
 
+    function clamp(a, b, c) {
+        if( a < b ) {
+            return b;
+        }
+        if( a > c ) {
+            return c;
+        }
+        return a;
+    }
+
+    function make_dot(x, y) {
+        opacity[x][y] = clamp(opacity[x][y] + 0.5, 0, 1);
+        if(x > 0) {
+            opacity[x-1][y] = clamp(opacity[x-1][y] + 0.25, 0, 1);
+        }
+        if(x + 1 < pixelsPerDim) {
+            opacity[x+1][y] = clamp(opacity[x+1][y] + 0.25, 0, 1);
+        }
+        if(y > 0) {
+            opacity[x][y-1] = clamp(opacity[x][y-1] + 0.25, 0, 1);
+        }
+        if(y + 1 < pixelsPerDim) {
+            opacity[x][y+1] = clamp(opacity[x][y+1] + 0.25, 0, 1);
+        }
+    }
+
+    function getFillStyle(x, y) {
+        v = 'rgba(0, 0, 0,' + opacity[x][y] + ')';
+        // console.log(v);
+        return v;
+    }
+
+    function draw_at(x, y) {
+        var t = [[-1,0],[1,0],[0,-1],[0,1], [0, 0]];
+        for(var i = 0; i < t.length; i++) {
+            var nx = t[i][0] + x;
+            var ny = t[i][1] + y;
+            if(nx >= 0 && nx < pixelsPerDim && ny >= 0 && ny < pixelsPerDim) {
+                ctx.fillStyle = "white";
+                ctx.fillRect(nx * resolution, ny * resolution, resolution, resolution)
+                ctx.fillStyle = getFillStyle(nx, ny);
+                ctx.fillRect(nx * resolution, ny * resolution, resolution, resolution);
+            }
+        }
+    }
+
+    function clear() {
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, w(), h());
+    }
+
     function findxy(res, e) {
         if (res == 'down') {
             prevX = currX;
@@ -162,17 +213,9 @@
             flag = true;
             dot_flag = true;
             if (dot_flag) {
-                /*
-                ctx.beginPath();
-                ctx.fillStyle = x;
-                ctx.fillRect(currX, currY, 2, 2);
-                ctx.closePath();
-                dot_flag = false;
-                */
-                ctx.fillStyle = x;
                 rect = findRectAt(currX, currY);
-                bitmap[rect[0]][rect[1]] = pixelFull;
-                ctx.fillRect(rect[0] * resolution, rect[1] * resolution, resolution, resolution);
+                make_dot(rect[0], rect[1]);
+                draw_at(rect[0], rect[1]);
             }
         }
         
@@ -188,6 +231,8 @@
                 prevY = currY;
                 currX = e.clientX - canvas.offsetLeft;
                 currY = e.clientY - canvas.offsetTop;
+
+                clear();
                 draw();
             }
         }
@@ -196,18 +241,18 @@
 
     function postData() {
       // console.log(ctx.getImageData(0, 0, w, h));
-
+        
         bitmapRotated = [];
-        while(bitmapRotated.length < bitmap.length) {
+        while(bitmapRotated.length < opacity.length) {
             bitmapRotated.push([]);
-            while(bitmapRotated[bitmapRotated.length - 1].length < bitmap.length) {
-                bitmapRotated[bitmapRotated.length - 1].push(0);
+            while(bitmapRotated[bitmapRotated.length - 1].length < opacity.length) {
+                bitmapRotated[bitmapRotated.length - 1].push(255);
             }
         }
 
-        for(var i = 0; i < bitmap.length; i++) {
-                for(var j = 0; j < bitmap[i].length; j++) {
-                    bitmapRotated[j][i] = bitmap[i][j];
+        for(var i = 0; i < opacity.length; i++) {
+                for(var j = 0; j < opacity[i].length; j++) {
+                    bitmapRotated[j][i] *= opacity[i][j];
                 }
             }
 
