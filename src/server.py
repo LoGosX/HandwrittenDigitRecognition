@@ -17,7 +17,7 @@ def hello():
         return jsonify(message)
 
 
-@app.route('/test')
+@app.route('/')
 def test_page():
     return render_template('index.html') #from 'templates' directory
 
