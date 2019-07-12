@@ -12,3 +12,4 @@ Built using Python 3.
 5. start server with `flask run`
 6. Open browser and go to http://localhost:5000/
 7. Have fun drawing digits!
+
