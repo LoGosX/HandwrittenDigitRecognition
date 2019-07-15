@@ -4,3 +4,4 @@ env
 tensorflow
 activate.sh
 tf_dziennik
+__pycache__
