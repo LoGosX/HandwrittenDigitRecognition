@@ -1,8 +1,6 @@
-TODO: better readme
-
 # What is it
-Simple webpage where you can draw a digit using mouse and my model built with Tensorflow will predict what digit it is.  
-The model is just a plain Neural Network with two hidden layers (100 neurons each, using ReLU activation).  
+A webpage where you can draw a digit using mouse and my model built with Tensorflow will predict what digit it is.  
+The model is a plain Neural Network with two hidden layers (100 neurons each, using ReLU activation).  
 Built using Python 3.  
 
 ## How to use:
